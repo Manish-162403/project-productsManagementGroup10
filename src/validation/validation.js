@@ -13,6 +13,18 @@ const isValid = (value) => {
         return true
 }
 
+const isValidobjectId = (objectId) => {
+    return mongoose.Types.ObjectId.isValid(objectId)
+}
 
-module.exports.isrequestBody=isrequestBody
-module.exports.isValid=isValid
+const isValidavailableSizes = (availableSizes) => {
+    return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(availableSizes) !== -1
+
+}
+
+
+
+module.exports.isrequestBody = isrequestBody
+module.exports.isValid = isValid
+module.exports.isValidobjectId = isValidobjectId
+module.exports.isValidavailableSizes = isValidavailableSizes
