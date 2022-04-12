@@ -7,6 +7,7 @@ router.post("/write-file-aws", url1.pic)
 
 router.post("/register", url1.createUSer)
 
+router.get("/user/:userId/profile", url1.getProfie)
 
 
 

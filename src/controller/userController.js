@@ -12,24 +12,24 @@ aws.config.update(
 
 
 let uploadFile = async (file) => {
-    return new Promise(function (resolve, reject) {
-
+    return new Promise( function(resolve, reject) {
+      
         let s3 = new aws.S3({ apiVersion: "2006-03-01" })
-
+    
         var uploadParams = {
             ACL: "public-read",
-            Bucket: "classroom-training-bucket",
+            Bucket: "classroom-training-bucket", 
             Key: "group10/" + file.originalname,
             Body: file.buffer
         }
-        console.log(uploadFile)
-        s3.upload(uploadParams, function (err, data) {
-            if (err) {
-                return reject({ "error": err })
+console.log(uploadFile)
+      s3.upload(uploadParams, function (err, data) {
+            if (err) { 
+                return reject({ "error": err }) 
             }
 
-            return resolve(data.Location)
-        }
+            return resolve(data.Location) 
+          }
         )
 
     }
@@ -37,11 +37,11 @@ let uploadFile = async (file) => {
 }
 
 
-const pic = async function (req, res) {
+const pic=  async function (req, res) {
     try {
         let files = req.files
         if (files && files.length > 0) {
-            let profileImage = await uploadFile(files[0])
+            let uploadedFileURL = await uploadFile(files[0])
             res.status(201).send({ msg: "file uploaded succesfully", data: uploadedFileURL })
         }
         else {
@@ -52,27 +52,33 @@ const pic = async function (req, res) {
         res.status(500).send({ msg: err })
     }
 }
+)
 
 
 
-
-const createUSer = async function (req, res) {
+const createUSer =async function (req, res) {
     try {
         let data = req.body
 
-       // const { fname, lname, email, phone,profileImage, password, address, billing } = data
+    const {fname,lname,email,phone,password, address,billing } = data
 
-        const output = await userModel.create( data)
-//console.log(output)
-        const finalData = { fname, lname, email, profileImage, phone, password, address, billing }
-console.log(finalData)
-        return res.status(201).send({ msg: "Data uploaded succesfully", data: finalData })
+        let files = req.files
+        if (files && files.length > 0) {
+            let profileImage = await uploadFile(files[0])
 
+const output = await userModel.create({fname,lname,email,profileImage,phone,password, address,billing})
+
+        const finalData = {fname,lname,email,profileImage,phone,password, address,billing}
+        
+           return res.status(201).send({ msg: "Data uploaded succesfully", data: finalData })
+        }
+        else {
+           return res.status(400).send({ msg: "No file found" })
+        }
     }
     catch (err) {
-        return res.status(500).send({ msg: err })
+       return res.status(500).send({ msg: err })
     }
 }
 
-module.exports.createUSer = createUSer;
-module.exports.pic=pic
+module.exports.createUSer= createUSer

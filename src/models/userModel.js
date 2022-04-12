@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
-// const { type } = require("express/lib/response")
 
 const userSchema = new mongoose.Schema({
-
 
 fname: {
     type:String,
@@ -18,15 +16,14 @@ lname: {
 email: {
     type:String,
     required:true,
-    // valid email,
-     unique:true
+      unique:true
     },
 
 profileImage: {
     type:String,
     required:true
 },
- // s3 link
+ 
 phone: {
     type:String,
     required:true, 
@@ -37,24 +34,32 @@ phone: {
 password: {
     type:String,
     required:true,
-    // minLen 8, maxLen 15
-}, // encrypted password
+    }, // encrypted password
 
 address: {
   shipping: {
     street: {type:String, required:true},
     city: {type:String, required:true},
     pincode: {type:Number, required:true}
-  }
-},
+  },
 
   billing: {
     street: {type:String, required:true},
     city: {type:String, required:true},
     pincode: {type:Number, required:true}
   },
-},
-{timestamps:true}
-)
+
+}},{timestamps:true}
+);
+
+
+//hashing the password and storing it in the DB.
+
+userSchema.pre("save", async function(next){
+  if(!this.isModified("password")){
+    next();
+  }
+  this.password = await bcrypt.hash(this.password,10);
+})
 
 module.exports = mongoose.model('createUser', userSchema)
