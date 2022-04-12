@@ -1,7 +1,7 @@
 const userModel = require("../models/userModel")
 const aws = require("aws-sdk");
 const validation = require("../validation/validation")
-
+const bcrypt = require("bcryptjs")
 
 const jwt = require("jsonwebtoken")
 
@@ -105,17 +105,6 @@ const createUSer = async function (req, res) {
     if (!isValid(data.lname)) {
         return res.status(400).send({ status: false, msg: "lname is Required" })
     }
-    if (!isValid(data.phone)) {
-        return res.status(400).send({ status: false, msg: "phone is Required" })
-    }
-    const alreadyExsit = await userModel.findOne({ phone: data.phone })
-    if (alreadyExsit) {
-        return res.status(400).send({ status: false, msg: "phone already exit" })
-    }
-    if (isValid(data.phone))
-
-        if (!(/^([+]\d{2})?\d{10}$/.test(data.phone)))
-            return res.status(400).send({ status: false, msg: "Please Enter  a Valid Phone Number" })
 
     if (!isValid(data.email)) {
         return res.status(400).send({ status: false, msg: "email is Required" })
@@ -129,43 +118,69 @@ const createUSer = async function (req, res) {
         return res.status(400).send({ status: false, msg: "email already exit" })
     }
 
-    if (!isValid(data.password)) {
-        return res.status(400).send({ status: false, msg: "Password is Required" })
-    }
-    if (!(/^[a-zA-Z0-9!@#$%^&*]{8,15}$/.test(data.password))) {
-        return res.status(400).send({ status: false, msg: "please provide valid password" })
-    }
-    if (!isValid(data.password)) {
-        return res.status(400).send({ status: false, msg: "Password is Required" })
-    }
     if (!isValid(data.profileImage)) {
         return res.status(400).send({ status: false, msg: "ProfileImage is Required" })
+}
+
+    if (!isValid(data.phone)) {
+        return res.status(400).send({ status: false, msg: "phone is Required" })
     }
+    const alreadyExsit = await userModel.findOne({ phone: data.phone })
+    if (alreadyExsit) {
+        return res.status(400).send({ status: false, msg: "phone already exit" })
+    }
+    if (isValid(phone))
+
+        if (!(/((\+)((0[ -])|((91 )))((\d{12})+|(\d{10})+))|\d{5}([- ]*)\d{6}/.test(phone)))
+            return res.status(400).send({ status: false, msg: "Please Enter  a Valid Phone Number" })
+  
+
+    if (!isValid(data.password)) {
+        return res.status(400).send({ status: false, msg: "Password is Required" })
+    }
+    //var bcrypt = data.password.bcrypt
+    // if (!(/^(?=.?[A-Z])(?=.?[a-z])(?=.?[0-9])(?=.?[#?!@$%^&*-]).{8,15}$/.test(data.password))) 
+    // {
+    //      return res.status(400).send({ status: false, msg: "please provide a valid password with one uppercase letter ,one lowercase, one character and one number " }) }
+
+   // const encryptedPassword = await bcryptjs.hash(password, saltRounds)
+   
+    if (!isValid(password.trim()))
+     { return res.status(400).send({ status: false, message: 'Plase Provide Password' }) }
+
+        if (!(password.length >= 8 && password.length <= 15)) 
+        { return res.status(400).send({ status: false, message: 'Please enter Password minlen 8 and maxlenth15' }) }
+        if (!(/^(?=[^\d_].*?\d)\w(\w|[!@#$%]){7,20}/.test(password))) {                   // @ se frk nhi pd rha usme
+            return res.status(400).send({ status: false, msg: "please provide valid password" })
+        }
+        //    (password.split(' ').length<8)
+        //     (password.split(' ').length>15)
+   
     if (!isValid(data.address.shipping.street)) {
         return res.status(400).send({ status: false, msg: "street is Required" })
     }
     if (!isValid(data.address.shipping.city)) {
         return res.status(400).send({ status: false, msg: "city is Required" })
     }
-    // if (!isValid(data.address.shipping.pincode)) {
-    //     return res.status(400).send({ status: false, msg: "pincode is Required" })
-    // }
-    // if (isValid(data.address.shipping.pincode))
+    if (!isValid(address.shipping.pincode)) {
+        return res.status(400).send({ status: false, msg: "pincode is Required" })
+    }
+    // if (isValid(address.shipping.pincode))
 
-    //     if (!(/^([+]\d{2})?\d{6}$/.test(data.address.shipping.pincode)))
-    //         return res.status(400).send({ status: false, msg: "Please Enter  a Valid pincode Number" })
+        if (!(/^([+]\d{2})?\d{6}$/.test(address.shipping.pincode)))
+            return res.status(400).send({ status: false, msg: "Please Enter  a Valid pincode Number" })
 
-    if (!isValid(data.address.billing.street)) {
+    if (!isValid(address.billing.street)) {
         return res.status(400).send({ status: false, msg: "billing street is Required" })
     }
-    if (!isValid(data.address.billing.city)) {
+    if (!isValid(address.billing.city)) {
         return res.status(400).send({ status: false, msg: "billing city is Required" })
     }
-    // if (!isValid(data.address.billing.pincode)) {
-    //     return res.status(400).send({ status: false, msg: " billing pincode is Required" })
-    // }
-    // if (!(/^([+]\d{2})?\d{6}$/.test(data.address.billing.pincode)))
-    //     return res.status(400).send({ status: false, msg: "Please Enter  a Valid billing  pincode Number" })
+    if (!isValid(address.billing.pincode)) {
+        return res.status(400).send({ status: false, msg: " billing pincode is Required" })
+    }
+    if (!(/^([+]\d{2})?\d{6}$/.test(address.billing.pincode)))
+        return res.status(400).send({ status: false, msg: "Please Enter  a Valid billing  pincode Number" })
 
 
         /************************************************************************************************* */
