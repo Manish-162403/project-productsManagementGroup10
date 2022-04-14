@@ -19,9 +19,7 @@ const isValid = function (value) {
     return true
 
 }
-const isValidRequestBody = function (requestBody) {
-    return Object.keys(requestBody).length > 0
-}
+
 
 /************************************ */
 aws.config.update(
@@ -123,10 +121,10 @@ const createUSer = async function (req, res) {
 
         if (!(password.length >= 8 && password.length <= 15)) { return res.status(400).send({ status: false, message: 'Please enter Password minlen 8 and maxlenth15' }) }
 
-        if (!isValid(data.address.shipping.street)) {
+        if (!isValid(address.shipping.street)) {
             return res.status(400).send({ status: false, msg: "street is Required" })
         }
-        if (!isValid(data.address.shipping.city)) {
+        if (!isValid(address.shipping.city)) {
             return res.status(400).send({ status: false, msg: "city is Required" })
         }
         if (!isValid(address.shipping.pincode)) {
@@ -134,6 +132,8 @@ const createUSer = async function (req, res) {
         }
         if (!(/^([+]\d{2})?\d{6}$/.test(address.shipping.pincode)))
             return res.status(400).send({ status: false, msg: "Please Enter  a Valid pincode Number" })
+
+
         if (!isValid(address.billing.street)) {
             return res.status(400).send({ status: false, msg: "billing street is Required" })
         }
@@ -156,32 +156,7 @@ const createUSer = async function (req, res) {
     }
 }
 
-
-const getProfie = async function (req, res) {
-    try {
-        const data = req.params.userId
-
-        let token = req.headers["x-api-key"];
-        let decodedToken = jwt.verify(token, "group10");
-        let userId = decodedToken.userId
-        if (userId != data) {
-            return res.status(400).send({ status: false, msg: "You are not allowed to modify requested user's data" })
-        }
-
-        const getProfiileData = await userModel.findOne({ _id: data })
-
-        console.log(getProfiileData)
-
-        return res.send(getProfiileData)
-    }
-    catch (err) {
-        console.log(err)
-        return res.status(500).send({ msg: false, msg: err.message })
-    }
-}
-
-
-
+//.........................................login......................................
 
 const logIn = async (req, res) => {
     try {
@@ -223,12 +198,38 @@ if(!check){return res.status(400).send({status:false, msg: "password is incorrec
         res.setHeader("x-api-key", token) // look ion the postman body header
 
 
-        return res.status(200).send({ status: true, msg: "user loing successfully", data: token })
+        return res.status(200).send({ status: true, msg: "user loing successfully", user:input._id, data: token })
     }
     catch (err) {
         return res.status(500).send({ status: false, msg: err.message })
     }
 
+}
+
+
+
+
+const getProfie = async function (req, res) {
+    try {
+        const data = req.params.userId
+
+        let token = req.headers["x-api-key"];
+        let decodedToken = jwt.verify(token, "group10");
+        let userId = decodedToken.userId
+        if (userId != data) {
+            return res.status(403).send({ status: false, msg: "You are not allowed to modify requested user's data" })
+        }
+
+        const getProfiileData = await userModel.findOne({ _id: data })
+
+        if(!getProfiileData){return res.status(404).send({status:false, message: "Data not found"})}
+
+        return res.status(200).send({status:true, data: getProfiileData})
+    }
+    catch (err) {
+        console.log(err)
+        return res.status(500).send({ msg: false, msg: err.message })
+    }
 }
 
 
@@ -310,36 +311,36 @@ const updateUser = async function (req, res) {
             var hash = bcrypt.hash(password, 10)
             newData['password']=hash
         }
-        if (address) {
+        if (isValid(address)) {
 
             address = JSON.parse(address)}
 
-          if(address.shipping){
+          if(isValid(address.shipping)){
               
-              if(address.shipping.street){
+              if(isValid(address.shipping.street)){
                 newData['address.shipping.street']=address.shipping.street
               }
 
-              if(address.shipping.city){
+              if(isValid(address.shipping.city)){
                 newData['address.shipping.city']=address.shipping.city
               }
 
-              if(address.shipping.pincode){
+              if(isValid(address.shipping.pincode)){
                 newData['address.shipping.pincode']=address.shipping.pincode
               }
           }
 
-          if(address.billing){
+          if(isValid(address.billing)){
               
-            if(address.billing.street){
+            if(isValid(address.billing.street)){
               newData['address.billing.street']=address.billing.street
             }
 
-            if(address.billing.city){
+            if(isValid(address.billing.city)){
               newData['address.billing.city']=address.billing.city
             }
 
-            if(address.billing.pincode){
+            if(isValid(address.billing.pincode)){
               newData['address.billing.pincode']=address.billing.pincode
             }
         }

@@ -54,6 +54,8 @@ const createProduct = async function (req, res) {
         let data = req.body
         let files = req.files
       
+if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please vinput some data"})}
+
         if (files && files.length > 0) {
             profileImagessweetselfie = await uploadFile(files[0])
         }
@@ -89,11 +91,6 @@ const getProduct = async function (req, res) {
         let {size,name,greaterThenPrice,lessThenPrice,priceSort} = req.query
       
         let filter = {isDeleted: false }
-        console.log(filter)
-      console.log(name)
-
-       // let check = await productModel.find(data.title)
-  
 
         if (isValid(size)) { filter['availableSizes'] = size }
         let arr =[]
@@ -101,8 +98,7 @@ const getProduct = async function (req, res) {
          if (isValid(name)) {
 
              let newOne = await productModel.find({isDeleted:false}).select({title:1, _id:0})
-             console.log(newOne) 
-            // let a= newOne.title
+          
              for (let i = 0; i < newOne.length; i++) {
                  let element = newOne[i].title
                  let checkVar = element.includes(name)
@@ -167,9 +163,9 @@ const getProductById = async function (req, res) {
 
         let id = req.params.productId
 
-        let findId = await productModel.findOne({ _id: id })
+        let findId = await productModel.findOne({ _id: id, isDeleted:false })
         if (!findId) {
-            return res.status(404).send({ status: false, msg: "Id not found" })
+            return res.status(404).send({ status: false, msg: "product not found" })
         }
         return res.status(200).send({ status: true, msg: findId })
 
@@ -194,11 +190,6 @@ let updateById = async function (req, res) {
        
         let productToBeUpdated = {}
 
-
-       // if (Object.keys(id).length == 0) { return res.status(400).send({ status: false, message: "please input the Id in proper manner" }) }
-
-       // if (!Object.keys(data).length>0) { return res.status(400).send({ status: false, message: "please input the data in proper manner" }) }
-
         let updateProduct = await productModel.findOne({ _id: id, isDeleted: false })
 
         if (!updateProduct) { return res.status(404).send({ status: false, message: "product not found" }) }
@@ -222,11 +213,7 @@ let updateById = async function (req, res) {
             profileImagessweetselfie = await uploadFile(files[0])
 
             productToBeUpdated.productImage=profileImagessweetselfie}
-        //if(data.productImage){productToBeUpdated['productImage'] = profileImagessweetselfie}
-       //if (isValid(data.productImage)) { productToBeUpdated['productImage'] = profileImagessweetselfie }}
-
-
-
+        
         let updatedItem = await productModel.findOneAndUpdate({ _id: id, isDeleted:false }, productToBeUpdated, { new: true })
 
         return res.status(200).send({ Status: "success", data: updatedItem })
@@ -247,11 +234,11 @@ let deleteproductById = async function (req, res) {
 
         if (id) {
 
-            let blogToBeDeleted = await productModel.findById(id)
+            let productToBeDeleted = await productModel.findOne({_id:id, isDeleted:false})
 
-            if (!blogToBeDeleted) { return res.status(404).send({ status: false, message: "product not found" }) }
+            if (!productToBeDeleted) { return res.status(404).send({ status: false, message: "product not found" }) }
 
-            if (blogToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
+            if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
 
 
             let deletedproduct = await productModel.findOneAndUpdate({ _id: id },

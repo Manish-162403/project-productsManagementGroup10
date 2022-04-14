@@ -7,7 +7,7 @@ const mid=require("../middleware/auth")
 
 const userControl= require("../controller/userController")
 const productControl =require("../controller/productController")
-
+const cart= require("../controller/cartController")
 
 //................  user api  ..........................
 
@@ -20,14 +20,20 @@ router.get("/user/:userId/profile",mid.auhtentication,userControl.getProfie)
 router.put("/user/:userId/profile",mid.auhtentication, userControl.updateUser)
 
 //.....................product......................
+router.post("/products", productControl.createProduct)
 
 router.get("/products", productControl.getProduct)
-router.post("/products", productControl.createProduct)
-router.delete("/products/:productId", productControl.deleteproductById)
-router.put("/products/:productId", productControl.updateById)
+
 router.get("/products/:productId", productControl.getProductById)
 
-//router.post("//products", url2.)
+router.put("/products/:productId", productControl.updateById)
+
+router.delete("/products/:productId", productControl.deleteproductById)
+
+
+//....................................cart....................................
+
+router.post("/users/:userId/cart", cart.addtocart)
 
 
 

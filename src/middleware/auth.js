@@ -1,6 +1,5 @@
 const jwt=require("jsonwebtoken")
 
-const userModel=require("../models/userModel")
 
 
 const auhtentication=(req,res,next)=>{

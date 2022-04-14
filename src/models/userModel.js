@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require("bcryptjs")
 
 const userSchema = new mongoose.Schema({
 
@@ -18,7 +17,6 @@ const userSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    // valid email,
     unique: true
   },
 
@@ -26,19 +24,19 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  // s3 link
+
   phone: {
     type: String,
     required: true,
     unique: true,
-    // valid Indian mobile number
+   
   },
 
   password: {
     type: String,
     required: true,
-    // minLen 8, maxLen 15
-  }, // encrypted password
+    
+  }, 
   
 isDeleted:{
   type:Boolean,
