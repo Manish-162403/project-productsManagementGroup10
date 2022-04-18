@@ -14,8 +14,8 @@ const jwt = require("jsonwebtoken")
 
 const isValid = function (value) {
     if (typeof value == undefined || value == null) return false
-    if (typeof value === 'string' && value.trim().length === 0) return false
-    if (typeof value === 'number' && value.toString().trim.length === 0) return false
+    if (typeof value === 'String' && value.trim().length === 0) return false
+    if (typeof value === 'Number' && value.toString().trim.length === 0) return false
     return true
 
 }
@@ -313,7 +313,7 @@ const updateUser = async function (req, res) {
         }
         if (isValid(address)) {
 
-            address = JSON.parse(address)}
+            address = JSON.parse(address)
 
           if(isValid(address.shipping)){
               
@@ -344,6 +344,7 @@ const updateUser = async function (req, res) {
               newData['address.billing.pincode']=address.billing.pincode
             }
         }
+    }
 
        
 
