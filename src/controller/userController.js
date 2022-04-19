@@ -1,16 +1,19 @@
 const userModel = require("../models/userModel")
 const aws = require("aws-sdk");
-const validation = require("../validation/validation")
-const bcrypt = require("bcryptjs")
 
+const bcrypt = require("bcryptjs")
+const objectId = require('mongoose').Types.ObjectId
 const jwt = require("jsonwebtoken")
 
 
 
 
 /********************************88 */
+// const isValidObjectId = function(ObjectId) {
+//     return mongoose.Types.ObjectId.isValid(ObjectId)
+//   }
 
-
+  const isValidObjId=/^[0-9a-fA-F]{24}$/
 
 const isValid = function (value) {
     if (typeof value == undefined || value == null) return false
@@ -71,6 +74,9 @@ const createUSer = async function (req, res) {
        
         data.address = address
 
+        
+       
+
         if (Object.keys(data).length == 0)
             return res.status(400).send({ status: false, msg: "Please Enter some data" })
 
@@ -111,7 +117,7 @@ const createUSer = async function (req, res) {
         }
 
         if (isValid(phone))
-            if (!(/((\+)((0[ -])|((91 )))((\d{12})+|(\d{10})+))|\d{5}([- ]*)\d{6}/.test(phone)))
+            if (!((/((\+)((0[ -])|((91 )))((\d{12})+|(\d{10})+))|\d{5}([- ]*)\d{6}/).test(phone)||(/^([+]\d{2})?\d{10}$/.test(phone))))
                 return res.status(400).send({ status: false, msg: "Please Enter  a Valid Phone Number" })
 
         if (!isValid(data.password)) {
@@ -121,9 +127,12 @@ const createUSer = async function (req, res) {
 
         if (!(password.length >= 8 && password.length <= 15)) { return res.status(400).send({ status: false, message: 'Please enter Password minlen 8 and maxlenth15' }) }
 
+
         if (!isValid(address.shipping.street)) {
             return res.status(400).send({ status: false, msg: "street is Required" })
+
         }
+        
         if (!isValid(address.shipping.city)) {
             return res.status(400).send({ status: false, msg: "city is Required" })
         }
@@ -161,15 +170,21 @@ const createUSer = async function (req, res) {
 const logIn = async (req, res) => {
     try {
         let body = req.body
-        if (!validation.isrequestBody(body))
+        if (!body)
             return res.status(400).send({ status: false, msg: "invalid request parameter, please provide login details" })
 
         const { email, password } = body
 
-        if (!validation.isValid(email))
+        if (isValid(email))
+        if (!(/^\w+([\.-]?\w+)@\w+([\.-]?\w+)(\.\w{2,3})+$/.test(email)))
+            return res.status(400).send({ status: false, msg: "email is not a valid " })
+
+        if (!isValid(email))
             return res.status(400).send({ status: false, msg: "please enter email" })
 
-        if (!validation.isValid(password))
+          
+
+        if (!isValid(password))
             return res.status(400).send({ status: false, msg: "please enter password" })
 
 
@@ -213,6 +228,8 @@ const getProfie = async function (req, res) {
     try {
         const data = req.params.userId
 
+if(!objectId.isValid(data)){return res.status(400).send({status:false, msg:"please provide valid user ID"})}
+
         const getProfiileData = await userModel.findOne({ _id: data })
 
         if(!getProfiileData){return res.status(404).send({status:false, message: "Data not found"})}
@@ -228,12 +245,17 @@ const getProfie = async function (req, res) {
 
 const updateUser = async function (req, res) {
     try {
-        const userId = req.params.userId
+        let data = req.params.userId  /////////////////////
 
-              const userFound = await userModel.findOne({ _id: userId })
+        if(!isValidObjId.test(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
+
+        let userFound = await userModel.findById(data)
+      
         if (!userFound) {
             return res.status(400).send({ status: false, message: 'no user exist with such user id' })
         }
+
+        if(!objectId.isValid(userFound)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
 
         const userData = req.body
         const files = req.files
@@ -335,7 +357,7 @@ const updateUser = async function (req, res) {
                 newData.profileImage=image
             }
         
-        const updatedUser = await userModel.findOneAndUpdate({ _id: userId },newData, { new: true })
+        const updatedUser = await userModel.findOneAndUpdate({ _id: data },newData, { new: true })
 
         return res.status(200).send({ status: true, message: "user updated succesfully", data: updatedUser })
     }

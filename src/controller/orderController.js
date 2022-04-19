@@ -72,7 +72,7 @@ const updateOrder = async function(req,res){
             return res.status(400).send({ status: false, msg: "status value should be 'pending','completed','cancelled' only allowed" })
         }
         
-        const orderRes = await orderModel.findOneAndUpdate({_id:orderId},{status:status},{new:true})
+        const orderRes = await orderModel.findOneAndUpdate({_id:orderId},status,{new:true})
         return res.status(200).send({ status:true, msg: "status update successfully",data:orderRes })
 
     }

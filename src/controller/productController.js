@@ -1,6 +1,6 @@
 const aws = require("aws-sdk");
 const productModel = require("../models/productModel");
-
+const objectId = require('mongoose').Types.ObjectId
 
 
 
@@ -14,7 +14,9 @@ const isValid = function (value) {
 // const isValidRequestBody = function (requestBody) {
 //     return Object.keys(requestBody).length > 0
 // }
-
+const isvalidSizes = function (availableSizes) {
+    return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(availableSizes) !== -1
+}
 
 
 /***********   S3 image Upload PArt   ******************** */
@@ -54,15 +56,51 @@ const createProduct = async function (req, res) {
         let data = req.body
         let files = req.files
       
-if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please vinput some data"})}
+if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please input some data"})}
 
-        if (files && files.length > 0) {
-            profileImagessweetselfie = await uploadFile(files[0])
-        }
-
+       
         const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
 
+//     title validation
+
+       if(!title){return res.status(400).send({status:false, msg:"title required"})}
+
+        if(!isValid(title)){return res.status(400).send({status:false, msg:"title required"})}
+
+       let duplicateTitle = await productModel.findOne({title:title})
+
+       if(duplicateTitle){
+           return res.status(400).send({status:false, msg: "title already exist in use"})}
+
+// description validation
+       
+    if(!description){return res.status(400).send({status:false, msg:"description required"})}
+
+       if(!isValid(description)){return res.status(400).send({status:false, msg:"description required"})}
+
+       let duplicateDescription = await productModel.findOne({description:description})
+
+       if(duplicateDescription){
+           return res.status(400).send({status:false, msg: "description already exist in use"})
+       }
+
+//..............
+    if(!price){return res.status(400).send({status:false, msg: "price required"})}
+
+    if(!currencyId){return res.status(400).send({status:false, msg: "currencyId required"})}
+
+    if(!currencyFormat){return res.status(400).send({status:false, msg: "currency format required"})}
+
+ if(!isvalidSizes(availableSizes)){return res.status(400).send({status:false, msg: "The size you are requesting is not available"})}
+
+    
+    if (files.length > 0) {
+      var  profileImagessweetselfie = await uploadFile(files[0])
+    }
+
         data.productImage = profileImagessweetselfie
+
+        if(!data.productImage){return res.status(400).send({status:false, msg: "productImage required"})}
 
         const created = await productModel.create(data)
 
@@ -163,7 +201,12 @@ const getProductById = async function (req, res) {
 
         let id = req.params.productId
 
-        let findId = await productModel.findOne({ _id: id, isDeleted:false })
+
+        if(!id.trim().length){return res.status(400).send({status:false, msg: "please input product Id to search"})}
+
+        if(!objectId.isValid(id)){return res.status(400).send({status:false, msg: "please input valid product Id"})}
+
+        let findId = await productModel.findById({ _id: id, isDeleted:false })
         if (!findId) {
             return res.status(404).send({ status: false, msg: "product not found" })
         }
@@ -188,6 +231,9 @@ let updateById = async function (req, res) {
         let files = req.files
       
        
+       
+        if(Object.keys(data || files).length == 0){return res.status(400).send({status:false, msg: "please input data"})}
+
         let productToBeUpdated = {}
 
         let updateProduct = await productModel.findOne({ _id: id, isDeleted: false })
@@ -196,17 +242,35 @@ let updateById = async function (req, res) {
 
         if (updateProduct.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
 
+        if(updateProduct.title == data.title){return res.status(400).send({status:false, msg: "title already exist"})}
 
-      
+        if(updateProduct.price == data.price){return res.status(400).send({status:false, msg: "price already exist"})}
+
+        if(updateProduct.currencyId==data.currencyId){return res.status(400).send({status:false, msg: "currencyId already exist"})}
+
+       // if(updateProduct.style == data.style){return res.status(400).send({status:false, msg: "style already exist"})}                        
+
+        if(updateProduct.description == data.description){return res.status(400).send({status:false, msg: "description already exist"})}
+
+        if(updateProduct.isFreeShipping == data.isFreeShipping){return res.status(400).send({status:false, msg: "same FreeShipping already exist"})}
+
+       // if(updateProduct.installments == data.installment){return res.status(400).send({status:false, msg: "same installments already exist"})}
+
+        if(updateProduct.availableSizes == data.availableSizes){return res.status(400).send({status:false, msg: "same availableSizes already exist"})}
+
         if (isValid(data.title)) { productToBeUpdated['title'] = data.title }
         if (isValid(data.price)) { productToBeUpdated['price'] = data.price }
         if (isValid(data.currencyId)) { productToBeUpdated['currencyId'] = data.currencyId }
         if (isValid(data.style)) { productToBeUpdated['style'] = data.style }
-        if (isValid(data.description)) { productToBeUpdated['discription'] = data.discription }
+        if (isValid(data.description)) { productToBeUpdated['description'] = data.description }
         if (isValid(data.currencyFormat)) { productToBeUpdated['currencyFormat'] = data.currencyFormat }
         if (isValid(data.isFreeShipping)) { productToBeUpdated['isFreeShipping'] = data.isFreeShipping }
         if (isValid(data.installments)) { productToBeUpdated['installments'] = data.installments }
         if (isValid(data.availableSizes)) { productToBeUpdated['availableSizes'] = data.availableSizes }
+
+// let dupliTitle = await productModel.findOne({title:data.title})
+
+
 
 
         if (files.length > 0) {
@@ -232,13 +296,19 @@ let deleteproductById = async function (req, res) {
     try {
         let id = req.params.productId
 
-        if (id) {
+        if (!id) {
+            return res.status(400).send({status:false, msg:"please input product id"})
+    }
+
+    if(!objectId.isValid(id)){ 
+        return res.status(400).send({status:false, msg:"please input valid product id"})
+    }
 
             let productToBeDeleted = await productModel.findOne({_id:id, isDeleted:false})
 
             if (!productToBeDeleted) { return res.status(404).send({ status: false, message: "product not found" }) }
 
-            if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
+            // if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
 
 
             let deletedproduct = await productModel.findOneAndUpdate({ _id: id },
@@ -247,7 +317,7 @@ let deleteproductById = async function (req, res) {
             return res.status(200).send({ Status: "Requested product has been deleted." })
 
 
-        }
+        
     }
     catch (err) {
         return res.status(500).send({ status: false, message: err.message })
