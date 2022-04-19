@@ -14,8 +14,15 @@ const isValid = function (value) {
 // const isValidRequestBody = function (requestBody) {
 //     return Object.keys(requestBody).length > 0
 // }
-const isvalidSizes = function (availableSizes) {
-    return ["S", "XS", "M", "X", "L", "XXL", "XL"].indexOf(availableSizes) !== -1
+const validForEnum = function (value) {
+    let enumValue = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+    value = JSON.parse(value)
+    for (let x of value) {
+        if (enumValue.includes(x) == false) {
+            return false
+        }
+    }
+    return true;
 }
 
 
@@ -61,6 +68,8 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
        
         const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
 
+
+
 //     title validation
 
        if(!title){return res.status(400).send({status:false, msg:"title required"})}
@@ -91,14 +100,20 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
 
     if(!currencyFormat){return res.status(400).send({status:false, msg: "currency format required"})}
 
- if(!isvalidSizes(availableSizes)){return res.status(400).send({status:false, msg: "The size you are requesting is not available"})}
+    if(!validForEnum(availableSizes)){return res.status(400).send({status:false, msg: "please choose the size from the available sizes"})}
 
-    
+    if(currencyId != "INR"){return res.status(400).send({status:false, msg: "only indian currencyId INR accepted"})}
+
+    if(currencyFormat != "₹"){return res.status(400).send({status:false, msg: "only indian currency ₹ accepted "})}
+
+
     if (files.length > 0) {
       var  profileImagessweetselfie = await uploadFile(files[0])
     }
 
         data.productImage = profileImagessweetselfie
+
+       data.availableSizes = JSON.parse(availableSizes)
 
         if(!data.productImage){return res.status(400).send({status:false, msg: "productImage required"})}
 
@@ -312,7 +327,7 @@ let deleteproductById = async function (req, res) {
 
 
             let deletedproduct = await productModel.findOneAndUpdate({ _id: id },
-                { $set: { isDeleted: true, deletedAt: Date.now() } })
+                { $set: { isDeleted: true, deletedAt: Date.now() } },{new:true})
 
             return res.status(200).send({ Status: "Requested product has been deleted." })
 
