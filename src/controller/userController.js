@@ -213,13 +213,6 @@ const getProfie = async function (req, res) {
     try {
         const data = req.params.userId
 
-        let token = req.headers["x-api-key"];
-        let decodedToken = jwt.verify(token, "group10");
-        let userId = decodedToken.userId
-        if (userId != data) {
-            return res.status(403).send({ status: false, msg: "You are not allowed to modify requested user's data" })
-        }
-
         const getProfiileData = await userModel.findOne({ _id: data })
 
         if(!getProfiileData){return res.status(404).send({status:false, message: "Data not found"})}
@@ -237,17 +230,7 @@ const updateUser = async function (req, res) {
     try {
         const userId = req.params.userId
 
-        /******************************** */
-
-        let token = req.headers["x-api-key"];
-        let decodedToken = jwt.verify(token, "group10");
-        let userId1 = decodedToken.userId
-        if (userId1 != userId) {
-            return res.status(403).send({ status: false, msg: "You are not allowed to modify requested user's data" })
-        }
-        /******************* */
-
-        const userFound = await userModel.findOne({ _id: userId })
+              const userFound = await userModel.findOne({ _id: userId })
         if (!userFound) {
             return res.status(400).send({ status: false, message: 'no user exist with such user id' })
         }
@@ -345,8 +328,7 @@ const updateUser = async function (req, res) {
             }
         }
     }
-
-       
+      
 
             if (files.length > 0) {
                 image = await uploadFile(files[0])
