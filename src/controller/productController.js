@@ -247,7 +247,7 @@ let updateById = async function (req, res) {
       
        
        
-        if(Object.keys(data).length == 0){return res.status(400).send({status:false, msg: "please input data"})}
+       if(!(data && files)){return res.status(400).send({status:false, msg: "please input text,image data to update."})}
 
         let productToBeUpdated = {}
 
