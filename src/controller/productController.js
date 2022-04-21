@@ -1,7 +1,7 @@
 const productModel = require("../models/productModel")
 const aws = require("aws-sdk")
 const { LexModelBuildingService } = require("aws-sdk")
-const validation = require("../validation/validation")
+const objectId = require('mongoose').Types.ObjectId
 
 let uploadFile = async (file) => {
     return new Promise(function (resolve, reject) {
@@ -49,7 +49,7 @@ const createProduct = async function (req, res) {
         if (!files) {
             return res.status(400).send({ status: false, mss: "select product image " })
         }
-        if (!validation.isValid(title)) {
+        if (!title) {
             return res.status(400).send({ status: false, msg: "please enter title " })
         }
 
@@ -58,28 +58,28 @@ const createProduct = async function (req, res) {
             return res.status(400).send({ status: false, msg: `title is already used ${title}` })
         }
 
-        if (!validation.isValid(description)) {
+        if (!description) {
             return res.status(400).send({ status: false, msg: "please enter description " })
         }
-        if (!validation.isValid(price)) {
+        if (!price) {
             return res.status(400).send({ status: false, msg: "please enter prine " })
         }
-        if (!validation.isValid(currencyId)) {
+        if (!currencyId) {
             return res.status(400).send({ status: false, msg: "please enter  currecnyId" })
         }
-        if (!validation.isValid(currencyFormat)) {
+        if (!currencyFormat) {
             return res.status(400).send({ status: false, msg: "please enter currencyFormat" })
         }
-        // if(!validation.isValid(isFreeShipping)){
+        // if(!isFreeShipping){
         //     return res.status(400).send({status:false,msg:"please enter "})
         // }
-        // if(!validation.isValid(style)){
+        // if(!style){
         //     return res.status(400).send({status:false,msg:"please enter "})
         // }
-        if (!validation.isValid(availableSizes)) {
+        if (!availableSizes) {
             return res.status(400).send({ status: false, msg: "please enter  product size" })
         }
-        // if(!validation.isValid(installments)){
+        // if(!installments){
         //     return res.status(400).send({status:false,msg:"please enter "})
         // }
         //data.productImage = profileImagessweetselfie
@@ -97,9 +97,9 @@ const createProduct = async function (req, res) {
 //     try {
 //         const input = req.query
 
-//         const book = await bookModel.find(input, { isDeleted: false }).select({ title:1, description:1, price:1, currencyId:1, currencyFormat:1 }).sort({ title: 1 })
+//         const book = await bookModel.find({input,  isDeleted: false }).select({ title:1, description:1, price:1, currencyId:1, currencyFormat:1 }).sort({ title: 1 })
 
-//         if (book.length == 0) return res.status(404).send({ status: false, msg: "no such  data found" })
+//         if (!book) return res.status(404).send({ status: false, msg: "no such  data found" })
 
 //         return res.status(200).send({ status: true, msg: "Book lists", data: book })
 //     }
@@ -123,7 +123,7 @@ let getProductById = async function (req, res) {
 
         if (!id) { return res.status(400).send({ status: false, message: "please input ID" }) }
         
-        if (!validation.isValidobjectId) {
+        if (!objectId.isValid(id)){
             return res.status(404).send({ status: false, msg: "this ID is not valid" })
         }
         let getProduct = await productModel.findOne({ _id: id, isDeleted: false })
@@ -160,7 +160,7 @@ let deleteproductById = async function (req, res) {
         if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
 
 
-        let deletedproduct = await productModel.findOneAndUpdate({ _id: id },
+        let deletedproduct = await productModel.findOneAndUpdate({ _id: id, isDeleted:false}
             { $set: { isDeleted: true, deletedAt: Date.now() } })
 
 
