@@ -60,7 +60,7 @@ let uploadFile = async (file) => {
 }
 
 
-const createUSer = async function (req, res) {
+const createUser = async function (req, res) {
     try {
         let data = req.body
         let files = req.files
@@ -371,7 +371,7 @@ const updateUser = async function (req, res) {
 
 
 
-module.exports.createUSer = createUSer;
+module.exports.createUSer = createUser;
 module.exports.updateUser = updateUser
 module.exports.logIn = logIn
 module.exports.getProfie = getProfie
