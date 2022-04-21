@@ -244,7 +244,7 @@ const updateUser = async function (req, res) {
     try {
         let data = req.params.userId  /////////////////////
 
-        if(!!objectId.isValid(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
+        if(!objectId.isValid(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
 
         let userFound = await userModel.findById(data)
       
