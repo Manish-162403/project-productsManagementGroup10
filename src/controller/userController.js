@@ -17,8 +17,8 @@ const jwt = require("jsonwebtoken")
 
 const isValid = function (value) {
     if (typeof value == undefined || value == null) return false
-    if (typeof value === 'String' && value.trim().length === 0) return false
-    if (typeof value === 'Number' && value.toString().trim.length === 0) return false
+    if (typeof value === 'string' && value.trim().length === 0) return false
+    if (typeof value === 'number' && value.toString().trim.length === 0) return false
     return true
 
 }
@@ -73,11 +73,8 @@ const createUSer = async function (req, res) {
         }
        
         data.address = address
-
-        
-       
-
-        if (Object.keys(data).length == 0)
+  
+       if (Object.keys(data).length == 0)
             return res.status(400).send({ status: false, msg: "Please Enter some data" })
 
         if (!isValid(fname)) {
@@ -106,7 +103,7 @@ const createUSer = async function (req, res) {
             return res.status(400).send({ status: false, msg: "ProfileImage is Required" })
         }
 
-        if (!isValid(data.phone)) {
+        if (!phone) {
             return res.status(400).send({ status: false, msg: "phone is Required" })
         }
 
@@ -116,7 +113,7 @@ const createUSer = async function (req, res) {
             return res.status(400).send({ status: false, msg: "phone already exit" })
         }
 
-        if (isValid(phone))
+        if (!isValid(phone))
             if (!((/((\+)((0[ -])|((91 )))((\d{12})+|(\d{10})+))|\d{5}([- ]*)\d{6}/).test(phone)||(/^([+]\d{2})?\d{10}$/.test(phone))))
                 return res.status(400).send({ status: false, msg: "Please Enter  a Valid Phone Number" })
 
@@ -158,8 +155,8 @@ const createUSer = async function (req, res) {
         const output = await userModel.create(finalData)
 
         return res.status(201).send({ msg: "Data uploaded succesfully", data: output })
-    }//address[shipping][street]
-    catch (err) {
+
+      catch (err) {
         console.log(err)
         return res.status(500).send({ msg: err.message })
     }
@@ -247,7 +244,7 @@ const updateUser = async function (req, res) {
     try {
         let data = req.params.userId  /////////////////////
 
-        if(!isValidObjId.test(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
+        if(!!objectId.isValid(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
 
         let userFound = await userModel.findById(data)
       
