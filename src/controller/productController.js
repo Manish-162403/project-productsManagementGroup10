@@ -6,8 +6,8 @@ const objectId = require('mongoose').Types.ObjectId
 
 const isValid = function (value) {
     if (typeof value == undefined || value == null) return false
-    if (typeof value === 'String' && value.trim().length === 0) return false
-    if (typeof value === 'Number' && value.toString().trim().length === 0) return false
+    if (typeof value === 'string' && value.trim().length === 0) return false
+    if (typeof value === 'number' && value.toString().trim().length === 0) return false
     return true
 
 }
@@ -184,20 +184,20 @@ const getProduct = async function (req, res) {
 
         let getData = await productModel.find(filter).sort({price:1})
 
-        if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+        if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
      
         return res.status(200).send({ status: true, Data:getData} )}
 
         if(priceSort==-1){
 
             let getData = await productModel.find(filter).sort({price:-1})
-            if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+            if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
          
             return res.status(200).send({ status: true, Data:getData} )}
 
             let getData = await productModel.find(filter)
 
-            if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+            if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
 
             return res.status(200).send({ status: true, Data:getData} )
    }
@@ -214,10 +214,10 @@ const getProduct = async function (req, res) {
 const getProductById = async function (req, res) {
     try {
 
-        let id = req.params.productId
+        let id = req.params.productId                        
 
 
-        if(!id.trim().length){return res.status(400).send({status:false, msg: "please input product Id to search"})}
+        if(!objectId.isValid(id)){return res.status(400).send({status:false, msg: "please input product Id to search"})}
 
         if(!objectId.isValid(id)){return res.status(400).send({status:false, msg: "please input valid product Id"})}
 
@@ -262,14 +262,10 @@ let updateById = async function (req, res) {
         if(updateProduct.price == data.price){return res.status(400).send({status:false, msg: "price already exist"})}
 
         if(updateProduct.currencyId==data.currencyId){return res.status(400).send({status:false, msg: "currencyId already exist"})}
-
-       // if(updateProduct.style == data.style){return res.status(400).send({status:false, msg: "style already exist"})}                        
-
+       
         if(updateProduct.description == data.description){return res.status(400).send({status:false, msg: "description already exist"})}
 
         if(updateProduct.isFreeShipping == data.isFreeShipping){return res.status(400).send({status:false, msg: "same FreeShipping already exist"})}
-
-       // if(updateProduct.installments == data.installment){return res.status(400).send({status:false, msg: "same installments already exist"})}
 
         if(updateProduct.availableSizes == data.availableSizes){return res.status(400).send({status:false, msg: "same availableSizes already exist"})}
 
@@ -282,11 +278,6 @@ let updateById = async function (req, res) {
         if (isValid(data.isFreeShipping)) { productToBeUpdated['isFreeShipping'] = data.isFreeShipping }
         if (isValid(data.installments)) { productToBeUpdated['installments'] = data.installments }
         if (isValid(data.availableSizes)) { productToBeUpdated['availableSizes'] = data.availableSizes }
-
-// let dupliTitle = await productModel.findOne({title:data.title})
-
-
-
 
         if (files.length > 0) {
             profileImagessweetselfie = await uploadFile(files[0])
@@ -322,9 +313,6 @@ let deleteproductById = async function (req, res) {
             let productToBeDeleted = await productModel.findOne({_id:id, isDeleted:false})
 
             if (!productToBeDeleted) { return res.status(404).send({ status: false, message: "product not found" }) }
-
-            // if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
-
 
             let deletedproduct = await productModel.findOneAndUpdate({ _id: id },
                 { $set: { isDeleted: true, deletedAt: Date.now() } },{new:true})
