@@ -7,22 +7,16 @@ const jwt = require("jsonwebtoken")
 
 
 
-
 /********************************88 */
-// const isValidObjectId = function(ObjectId) {
-//     return mongoose.Types.ObjectId.isValid(ObjectId)
-//   }
 
-  const isValidObjId=/^[0-9a-fA-F]{24}$/
 
-const isValid = function (value) {
-    if (typeof value == undefined || value == null) return false
-    if (typeof value === 'String' && value.trim().length === 0) return false
-    if (typeof value === 'Number' && value.toString().trim.length === 0) return false
+const isValidObjId=/^[0-9a-fA-F]{24}$/
+
+   const isValid = function (value) {
+    if (typeof value == 'undefined' || value === null) return false
+    if (typeof value == 'string' && value.trim().length === 0) return false
     return true
-
 }
-
 
 /************************************ */
 aws.config.update(
@@ -74,7 +68,7 @@ const createUSer = async function (req, res) {
        
         data.address = address
 
-        
+        if(!req.body.address){return res.send("address required")}
        
 
         if (Object.keys(data).length == 0)
@@ -99,7 +93,7 @@ const createUSer = async function (req, res) {
         let alreadyExistEmail = await userModel.findOne({ email: data.email })
 
         if (alreadyExistEmail) {
-            return res.status(400).send({ status: false, msg: "email already exit" })
+            return res.status(400).send({ status: false, msg: "email already exist" })
         }
 
         if (files.length==0) {
@@ -116,9 +110,10 @@ const createUSer = async function (req, res) {
             return res.status(400).send({ status: false, msg: "phone already exit" })
         }
 
-        if (isValid(phone))
-            if (!((/((\+)((0[ -])|((91 )))((\d{12})+|(\d{10})+))|\d{5}([- ]*)\d{6}/).test(phone)||(/^([+]\d{2})?\d{10}$/.test(phone))))
-                return res.status(400).send({ status: false, msg: "Please Enter  a Valid Phone Number" })
+        if (!(/^(\+91[\-\s]?)?[0]?(91)?[789]\d{9}$/.test(phone))) {
+            return res.status(400).send({ status: false, message: "Mobile Number is not valid" })
+
+        }
 
         if (!isValid(data.password)) {
             return res.status(400).send({ status: false, msg: "Password is Required" })
@@ -150,6 +145,8 @@ const createUSer = async function (req, res) {
             return res.status(400).send({ status: false, msg: "billing city is Required" })
         }
 
+
+
         let hash = await bcrypt.hash(password, 10)
 
         const finalData = { fname, lname, email,profileImage:profileImagessweetselfie, phone, password: hash, address }
@@ -157,7 +154,7 @@ const createUSer = async function (req, res) {
 
         const output = await userModel.create(finalData)
 
-        return res.status(201).send({ msg: "Data uploaded succesfully", data: output })
+        return res.status(201).send({ message: "Success", data: output })
     }//address[shipping][street]
     catch (err) {
         console.log(err)
@@ -205,12 +202,12 @@ if(!check){return res.status(400).send({status:false, msg: "password is incorrec
             userId: input._id.toString(),
 
             group: "10",
-            iat: Math.floor(Date.now() / 1000),         //doubt clear about this after some time   //payload
+            iat: Math.floor(Date.now() / 1000),          //payload
             exp: Math.floor(Date.now() / 1000) + 1 * 60 * 60    //1 hourds:minute:second
 
         }, "group10")//secret key
-        //const userId: input._id.toString(),
-        res.setHeader("x-api-key", token) // look ion the postman body header
+       
+        res.setHeader("authorization", token) // look ion the postman body header
 
 
         return res.status(200).send({ status: true, msg: "user loing successfully", user:input._id, data: token })
@@ -237,7 +234,7 @@ if(!objectId.isValid(data)){return res.status(400).send({status:false, msg:"plea
         return res.status(200).send({status:true, data: getProfiileData})
     }
     catch (err) {
-        console.log(err)
+     
         return res.status(500).send({ msg: false, msg: err.message })
     }
 }
@@ -245,20 +242,21 @@ if(!objectId.isValid(data)){return res.status(400).send({status:false, msg:"plea
 
 const updateUser = async function (req, res) {
     try {
-        let data = req.params.userId  /////////////////////
+        let userid = req.params.userId  
 
-        if(!isValidObjId.test(data)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
+        if(!objectId.isValid(userid)){return res.status(400).send({status:false, msg:"please provide valid user ID"})}
 
-        let userFound = await userModel.findById(data)
+        let userFound = await userModel.findById(userid)
+ 
       
         if (!userFound) {
-            return res.status(400).send({ status: false, message: 'no user exist with such user id' })
+            return res.status(404).send({ status: false, message: 'no user exist with such user id' })
         }
-
-        if(!objectId.isValid(userFound)){ return res.status(400).send({ status: false, message: 'no user exist with such user id' })}
 
         const userData = req.body
         const files = req.files
+
+       if(!(userData && files)){return res.status(400).send({status: false, message: "please input some data"})}
 
    let newData = {}
 
@@ -298,8 +296,9 @@ const updateUser = async function (req, res) {
             if (!isValid(phone)) {
                 return res.status(400).send({ status: false, message: "Invalid request parameter, please provide Phone" });
             }
-            if (!/^(?:(?:\+|0{0,2})91(\s*[\-]\s*)?|[0]?)?[6789]\d{9}$/.test(phone)) {
-                return res.status(400).send({ status: false, message: `Mobile should be a valid number` });
+            if (!(/^(\+91[\-\s]?)?[0]?(91)?[789]\d{9}$/.test(phone))) {
+                return res.status(400).send({ status: false, message: "Mobile Number is not valid" })
+    
             }
             let duplicatePhone = await userModel.findOne({ phone: phone })
             if (duplicatePhone) {
@@ -307,8 +306,7 @@ const updateUser = async function (req, res) {
             }
         }
         if (password) {
-
-            
+           
             if (!isValid(password)) { return res.status(400).send({ status: "false", message: "Please enter a valid password" }) }
             if (!(password.length >= 8 && password.length <= 15)) {
                 return res.status(400).send({ status: false, message: "Password should be Valid min 8 and max 15 " });
@@ -357,7 +355,7 @@ const updateUser = async function (req, res) {
                 newData.profileImage=image
             }
         
-        const updatedUser = await userModel.findOneAndUpdate({ _id: data },newData, { new: true })
+        const updatedUser = await userModel.findOneAndUpdate({ _id: userid },newData, { new: true })
 
         return res.status(200).send({ status: true, message: "user updated succesfully", data: updatedUser })
     }
@@ -375,6 +373,6 @@ const updateUser = async function (req, res) {
 
 
 module.exports.createUSer = createUSer;
-module.exports.updateUser = updateUser
 module.exports.logIn = logIn
 module.exports.getProfie = getProfie
+module.exports.updateUser = updateUser

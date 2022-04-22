@@ -3,17 +3,20 @@ const productModel = require("../models/productModel")
 const userModel = require("../models/userModel")
 const objectId = require('mongoose').Types.ObjectId
 
-// const isValid = function (value) {
-//     if (typeof value === undefined || value === null) return false
-//     if (typeof value === 'String' && value.trim().length === 0) return false
-//     return true;
-// }
+const isValid = function (value) {
+    if (typeof value == 'undefined' || value === null) return false
+    if (typeof value == 'string' && value.trim().length === 0) return false
+    return true
+}
 
 
 const addtocart = async function (req, res) {
     try {
         let userId = req.params.userId
         let { cartId, productId } = req.body
+
+        if(!objectId.isValid(userId)){return res.status(400).send({status: flase, message: "user does not exist"})}
+
         if (Object.keys(req.body) == 0) {
             return res.status(400).send({ status: false, msg: "please enter some data" })
         }
@@ -59,11 +62,11 @@ const addtocart = async function (req, res) {
                     updateData['totalItems'] = cartData.items.length
 
                     const cartUpdate = await cartModel.findOneAndUpdate({ _id: cartId }, updateData, { new: true })
-                    return res.status(200).send({ status: true, msg: "cart updated", data: cartUpdate })
+                    return res.status(201).send({ status: true, message: "Success", data: cartUpdate })
 
                 }
                 if (cartData.items[i].productId != productId && i == cartData.items.length - 1) {
-                    let obj = { productId: productId, quantity: 1 }
+                    let obj = { productId: productId, quantity:1 }
                     let arr = cartData.items
                     arr.push(obj)
 
@@ -76,7 +79,7 @@ const addtocart = async function (req, res) {
                     updateData['totalItems'] = cartData.items.length;
 
                     const updatedCart = await cartModel.findOneAndUpdate({ _id: cartId }, updateData, { new: true })
-                    return res.status(200).send({ status: true, message: "Updated Cart", data: updatedCart })
+                    return res.status(201).send({ status: true, message: "Success", data: updatedCart })
                 }
 
             }
@@ -86,7 +89,7 @@ const addtocart = async function (req, res) {
             let arr = []
             let newData = {}
             newData.userId = userId;
-            let object = { productId: productId, quantity: 1 }
+            let object = { productId: productId, quantity:1 }
             arr.push(object)
             newData['items'] = arr
             const productPrice = await productModel.findOne({ _id: productId, isDeleted: false }).select({ price: 1, _id: 0 })
@@ -98,7 +101,7 @@ const addtocart = async function (req, res) {
 
             const newCart = await cartModel.create(newData)
 
-            return res.status(201).send({ status: true, message: "Cart details", data: newCart })
+            return res.status(201).send({ status: true, message: "Success", data: newCart })
 
         }
     }
@@ -155,7 +158,7 @@ const updateCart=async (req,res)=>{
      
   
       //cart validation
-      if (!isValidObjId.test(cartId)) {
+      if (!objectId.isValid(cartId)) {
           return res.status(400).send({ status: false, message: "Invalid cartId in body" })
       }
       let findCart = await cartModel.findById({ _id: cartId })
@@ -164,7 +167,7 @@ const updateCart=async (req,res)=>{
       }
   
       //product validation
-      if (!isValidObjId.test(productId)) {
+      if (!(objectId.isValid(productId))) {
           return res.status(400).send({ status: false, message: "Invalid productId in body" })
       }
       let findProduct = await productModel.findOne({ _id: productId, isDeleted: false })

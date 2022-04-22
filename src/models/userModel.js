@@ -43,12 +43,6 @@ const userSchema = new mongoose.Schema({
     
   }, 
   
-isDeleted:{
-  type:Boolean,
-  default:false
-},
-
-
   address: {
     shipping: {
       street: { type: String, required: true,trim:true },

@@ -13,7 +13,7 @@ const authentication = function (req, res, next) {
         const bearer=token.split(' ')
         const bearerToken=bearer[1]
         const decodedToken = jwt.verify(bearerToken, "group10");
-
+// console.log(decodedToken.userId)
         if (!decodedToken) {
             return res.status(400).send({ status: false, message: "token is invalid" });
         }
@@ -46,7 +46,7 @@ let authorization = async function (req, res, next) {
 
         let decodedUserId = decodedToken.userId
         let userIdParams = req.params.userId
-
+// console.log(userIdParams)
         let userDetailsId = await userModel.findById({ _id: userIdParams })
         if (!userDetailsId) {
             return res.status(401).send({ status: false, msg: "no data found with this Id" });

@@ -45,8 +45,10 @@ router.delete("/users/:userId/cart",mid.authentication,mid.authorization, cart.d
 
 //.......................................order.......................................
 
-router.post("/users/:userId/orders",mid.authentication,mid.authorization,order.orderPlaced)
+router.post("/users/:userId/orders",mid.authentication,mid.authorization,order.createOrder)
 
 router.put("/users/:userId/orders",mid.authentication,mid.authorization,order.updateOrder)
 
 module.exports= router;
+
+

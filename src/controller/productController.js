@@ -2,18 +2,24 @@ const aws = require("aws-sdk");
 const productModel = require("../models/productModel");
 const objectId = require('mongoose').Types.ObjectId
 
-
+const isValidArray = function (object) {
+    if (typeof (object) === "object") {
+        object = object.filter(x => x.trim())
+        if (object.length == 0) {
+            return false;
+        }
+        else { return true; }
+    }
+}
 
 const isValid = function (value) {
     if (typeof value == undefined || value == null) return false
-    if (typeof value === 'String' && value.trim().length === 0) return false
-    if (typeof value === 'Number' && value.toString().trim().length === 0) return false
+    if (typeof value == 'String' && value.trim().length == 0) return false
+    if (typeof value == 'Number' && value.toString().trim().length == 0) return false
     return true
 
 }
-// const isValidRequestBody = function (requestBody) {
-//     return Object.keys(requestBody).length > 0
-// }
+
 const validForEnum = function (value) {
     let enumValue = ["S", "XS", "M", "X", "L", "XXL", "XL"]
     value = JSON.parse(value)
@@ -63,7 +69,7 @@ const createProduct = async function (req, res) {
         let data = req.body
         let files = req.files
       
-if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please input some data"})}
+if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please input some text data"})}
 
        
         const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
@@ -95,6 +101,10 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
 
 //..............
     if(!price){return res.status(400).send({status:false, msg: "price required"})}
+
+    if(!installments){return res.status(400).send({status:false, msg: "installments required"})}
+
+    if(!availableSizes){return res.status(400).send({status:false, msg: "availableSizes required"})}
 
     if(!currencyId){return res.status(400).send({status:false, msg: "currencyId required"})}
 
@@ -184,20 +194,20 @@ const getProduct = async function (req, res) {
 
         let getData = await productModel.find(filter).sort({price:1})
 
-        if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+        if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
      
         return res.status(200).send({ status: true, Data:getData} )}
 
         if(priceSort==-1){
 
             let getData = await productModel.find(filter).sort({price:-1})
-            if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+            if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
          
             return res.status(200).send({ status: true, Data:getData} )}
 
             let getData = await productModel.find(filter)
 
-            if(getData.length==0){return res.status(404).send({status:false, msg:"data not found"})}
+            if(!getData){return res.status(404).send({status:false, msg:"data not found"})}
 
             return res.status(200).send({ status: true, Data:getData} )
    }
@@ -207,8 +217,6 @@ const getProduct = async function (req, res) {
     }
 }
 
-
-
 /************* GET PRODUCT BY ID*********************** */
 
 const getProductById = async function (req, res) {
@@ -217,7 +225,7 @@ const getProductById = async function (req, res) {
         let id = req.params.productId
 
 
-        if(!id.trim().length){return res.status(400).send({status:false, msg: "please input product Id to search"})}
+        if(!id){return res.status(400).send({status:false, msg: "please input product Id to search"})}
 
         if(!objectId.isValid(id)){return res.status(400).send({status:false, msg: "please input valid product Id"})}
 
@@ -245,9 +253,11 @@ let updateById = async function (req, res) {
         let data = req.body
         let files = req.files
       
+        if(!objectId.isValid(id)){ 
+            return res.status(400).send({status:false, msg:"please input valid product id"})
+        }
        
-       
-        if(Object.keys(data || files).length == 0){return res.status(400).send({status:false, msg: "please input data"})}
+        if(!(data && files)){return res.status(400).send({status:false, msg: "please input data"})}
 
         let productToBeUpdated = {}
 
@@ -262,14 +272,10 @@ let updateById = async function (req, res) {
         if(updateProduct.price == data.price){return res.status(400).send({status:false, msg: "price already exist"})}
 
         if(updateProduct.currencyId==data.currencyId){return res.status(400).send({status:false, msg: "currencyId already exist"})}
-
-       // if(updateProduct.style == data.style){return res.status(400).send({status:false, msg: "style already exist"})}                        
-
+       
         if(updateProduct.description == data.description){return res.status(400).send({status:false, msg: "description already exist"})}
 
         if(updateProduct.isFreeShipping == data.isFreeShipping){return res.status(400).send({status:false, msg: "same FreeShipping already exist"})}
-
-       // if(updateProduct.installments == data.installment){return res.status(400).send({status:false, msg: "same installments already exist"})}
 
         if(updateProduct.availableSizes == data.availableSizes){return res.status(400).send({status:false, msg: "same availableSizes already exist"})}
 
@@ -282,10 +288,6 @@ let updateById = async function (req, res) {
         if (isValid(data.isFreeShipping)) { productToBeUpdated['isFreeShipping'] = data.isFreeShipping }
         if (isValid(data.installments)) { productToBeUpdated['installments'] = data.installments }
         if (isValid(data.availableSizes)) { productToBeUpdated['availableSizes'] = data.availableSizes }
-
-// let dupliTitle = await productModel.findOne({title:data.title})
-
-
 
 
         if (files.length > 0) {
@@ -309,34 +311,26 @@ let updateById = async function (req, res) {
 
 let deleteproductById = async function (req, res) {
     try {
-        let id = req.params.productId
+        let productId = req.params.productId
+        if (!objectId.isValid(productId)) {
+            return res.status(400).send({ status: false, msg: "invalid productId" })
+        }
+        let product = await productModel.findOne({ _id: productId })
+        if (!product) {
+            return res.status(404).send({ status: false, msg: "Document not found" })
+        }
+        if (product.isDeleted == true) {
+            return res.status(400).send({ status: false, msg: "This document already deleted" })
+        }
+        let data = { isDeleted: true, deletedAt: Date.now() }
+        const deleteData = await productModel.findOneAndUpdate({ _id: productId, isDeleted: false }, { $set: data }, { new: true }).select({ __v: 0 })
+        return res.status(200).send({ status: true, message: "Product deletion is successful", data: deleteData })
 
-        if (!id) {
-            return res.status(400).send({status:false, msg:"please input product id"})
-    }
-
-    if(!objectId.isValid(id)){ 
-        return res.status(400).send({status:false, msg:"please input valid product id"})
-    }
-
-            let productToBeDeleted = await productModel.findOne({_id:id, isDeleted:false})
-
-            if (!productToBeDeleted) { return res.status(404).send({ status: false, message: "product not found" }) }
-
-            // if (productToBeDeleted.isDeleted == true) { return res.status(400).send({ status: false, msg: "product has already been deleted" }) }
-
-
-            let deletedproduct = await productModel.findOneAndUpdate({ _id: id },
-                { $set: { isDeleted: true, deletedAt: Date.now() } },{new:true})
-
-            return res.status(200).send({ Status: "Requested product has been deleted." })
-
-
-        
     }
     catch (err) {
-        return res.status(500).send({ status: false, message: err.message })
+        return res.status(500).send({ status: false, msg: err.message })
     }
+
 }
 
 
