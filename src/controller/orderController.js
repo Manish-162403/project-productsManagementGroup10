@@ -20,30 +20,20 @@ const createOrder = async(req, res) => {
 
         //validation for request body
         if (!isValidRequestBody(requestBody)) {
-            return res
-                .status(400)
-                .send({
-                    status: false,
-                    message: "Invalid request body. Please provide the the input to proceed.",
-                });
+            return res.status(400).send({status: false, message: "Invalid request body. Please provide the the input to proceed." });
         }
         //Extract parameters
         const { cartId, cancellable, status } = requestBody;
 
         //validating userId
         if (!isValidObjId.test(userId)) {
-            return res
-                .status(400)
-                .send({ status: false, message: "Invalid userId in params." });
+            return res.status(400).send({ status: false, message: "Invalid userId in params." });
         }
 
         const searchUser = await UserModel.findOne({ _id: userId }).select({_id:1});
         // console.log(searchUser)
         if (!searchUser) {
-            return res.status(400).send({
-                status: false,
-                message: `user doesn't exists for ${userId}`,
-            });
+            return res.status(400).send({status: false,message: `user doesn't exists for ${userId}` });
         }
         //Authentication & authorization
         if (searchUser._id != userId) {
@@ -73,7 +63,8 @@ const createOrder = async(req, res) => {
 
         // must be either - pending , completed or cancelled.
         if (status) {
-          if(!["pending", "completed", "cancelled"].includes(status)){return res.status(400).send({status : false, message : "status should be from [pending, completed, cancelled]"})
+          if(!["pending", "completed", "cancelled"].includes(status)){
+            return res.status(400).send({status : false, message : "status should be from [pending, completed, cancelled]"})
           }
         }
 
