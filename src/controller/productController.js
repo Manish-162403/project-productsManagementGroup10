@@ -113,9 +113,12 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
     if(!validForEnum(availableSizes)){return res.status(400).send({status:false, msg: "please choose the size from the available sizes"})}
 
     if(currencyId != "INR"){return res.status(400).send({status:false, msg: "only indian currencyId INR accepted"})}
+        
+        if(!currencyId){return res.status(400).send({status:false, msg: "Indian currencyId INR required"})}
 
     if(currencyFormat != "₹"){return res.status(400).send({status:false, msg: "only indian currency ₹ accepted "})}
-
+        if(!currencyFormat){return res.status(400).send({status:false, msg: "currencyFormat ₹ required"})}
+        
 
     if (files.length > 0) {
       var  profileImagessweetselfie = await uploadFile(files[0])
